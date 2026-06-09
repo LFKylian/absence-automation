@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Google Sans", Arial, sans-serif;
+      font-size: 14px; color: #202124; background: #f8f9fa;
+      display: flex; flex-direction: column; height: 100dvh; min-height: 100vh; overflow: hidden;
+      touch-action: manipulation;
+    }
+    header {
+      background: #1a73e8; color: white;
+      padding: 14px 20px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    main {
+      flex: 1; overflow-y: auto; padding: 16px 20px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    footer {
+      background: white; border-top: 1px solid #e0e0e0;
+      padding: 12px 20px; display: flex; gap: 10px;
+      justify-content: flex-end; flex-shrink: 0;
+    }
+
+    /* ── Boutons ── */
+    .btn {
+      min-height: 44px; padding: 10px 18px; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 14px; font-weight: 500; transition: opacity 0.2s;
+      touch-action: manipulation;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary   { background: #1a73e8; color: white; }
+    .btn-primary:hover:not(:disabled)   { background: #1557b0; }
+    .btn-secondary { background: white; color: #1a73e8; border: 1px solid #dadce0; }
+    .btn-secondary:hover:not(:disabled) { background: #f1f3f4; }
+
+    /* ── Sections ── */
+    .section { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; }
+    .section-title {
+      font-weight: 600; font-size: 13px; text-transform: uppercase;
+      letter-spacing: .5px; color: #5f6368; margin-bottom: 12px;
+    }
+    .section-desc { margin-bottom: 12px; color: #5f6368; font-size: 13px; }
+
+    /* ── Chips dossiers ── */
+    .folder-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 32px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #e8f0fe; color: #1a73e8; border: 1px solid #c5d8f6;
+      border-radius: 16px; padding: 6px 8px 6px 12px; font-size: 12px; font-weight: 500;
+      min-height: 36px; max-width: 100%;
+    }
+    .chip-remove {
+      background: none; border: none; color: #1a73e8;
+      cursor: pointer; font-size: 18px; line-height: 1; padding: 0; opacity: 0.7;
+      width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .chip-remove:hover { opacity: 1; }
+    .no-folder-hint { font-size: 12px; color: #80868b; font-style: italic; align-self: center; }
+
+    /* ── Navigateur de dates ── */
+    .date-controls { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+    .date-nav { display: flex; align-items: center; gap: 12px; }
+    .date-nav-btn {
+      width: 48px; height: 48px; border: 1px solid #dadce0; border-radius: 50%;
+      background: white; cursor: pointer; font-size: 18px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .date-nav-btn:hover:not(:disabled) { background: #f1f3f4; }
+    .date-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .date-label { font-size: 16px; font-weight: 600; color: #1a73e8; min-width: 110px; text-align: center; }
+    .date-counter { font-size: 12px; color: #80868b; }
+
+    /* ── Cartes statut fichier ── */
+    .file-check-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .file-card {
+      border-radius: 6px; padding: 10px 12px;
+      border-left: 4px solid #dadce0; background: #fafafa;
+    }
+    .file-card.status-ok      { border-left-color: #34a853; background: #f6fef8; }
+    .file-card.status-partial { border-left-color: #fbbc04; background: #fffbf0; }
+    .file-card.status-missing { border-left-color: #ea4335; background: #fff8f7; }
+
+    .file-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .file-card-name { font-weight: 600; font-size: 13px; }
+    .file-status-badge {
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 10px; white-space: nowrap; flex-shrink: 0;
+    }
+    .badge-ok      { background: #e6f4ea; color: #137333; }
+    .badge-partial { background: #fef7e0; color: #9a6700; }
+    .badge-missing { background: #fce8e6; color: #c5221f; }
+
+    .file-card-reason { font-size: 12px; color: #5f6368; margin-top: 4px; margin-bottom: 8px; }
+    .file-card-resolved { font-size: 11px; color: #80868b; margin-bottom: 8px; font-style: italic; }
+
+    /* ── Cartes élèves ── */
+    .student-card {
+      border: 1px solid #e0e0e0; border-radius: 6px;
+      padding: 12px 14px; margin-bottom: 10px; background: #fff;
+    }
+    .student-card:last-child { margin-bottom: 0; }
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .student-name   { font-weight: 600; font-size: 15px; }
+    .student-emails { font-size: 12px; color: #5f6368; margin-bottom: 8px; }
+
+    /* ── Toggle envoi ── */
+    .send-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; cursor: pointer; color: #5f6368;
+      white-space: nowrap; flex-shrink: 0; margin-left: 12px;
+    }
+    .send-label input[type="checkbox"] { cursor: pointer; width: 22px; height: 22px; flex: 0 0 auto; }
+    .send-label.disabled { opacity: 0.45; cursor: not-allowed; }
+    .send-label.disabled input { cursor: not-allowed; }
+
+    /* ── Badges statut ── */
+    .badge {
+      display: inline-block; border-radius: 4px;
+      padding: 2px 8px; font-size: 12px; font-weight: 500; margin-bottom: 8px;
+    }
+    .badge-absent  { background: #fce8e6; color: #c5221f; }
+    .badge-unknown { background: #fef7e0; color: #9a6700; }
+    .badge-empty   { background: #f1f3f4; color: #5f6368; }
+    .badge-nomail  { background: #f1f3f4; color: #c5221f; border: 1px solid #f5c6c4; }
+
+    /* ── Templates ── */
+    .template-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .template-btn {
+      padding: 5px 12px; border: 1px solid #dadce0; border-radius: 20px;
+      background: white; cursor: pointer; font-size: 12px; transition: all 0.15s;
+    }
+    .template-btn.active { background: #e8f0fe; border-color: #1a73e8; color: #1a73e8; font-weight: 600; }
+    .preview-box {
+      background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px;
+      padding: 10px; font-size: 12px; white-space: pre-wrap;
+      max-height: 90px; overflow-y: auto; color: #3c4043;
+    }
+
+    /* ── Éditeur template personnalisé ── */
+    .custom-editor textarea, .custom-editor input {
+      width: 100%; border: 1px solid #dadce0; border-radius: 4px;
+      padding: 8px; font-size: 13px; font-family: inherit;
+      margin-bottom: 8px; resize: vertical;
+    }
+    .custom-editor textarea:focus, .custom-editor input:focus { outline: none; border-color: #1a73e8; }
+    .hint { font-size: 11px; color: #80868b; margin-top: -4px; margin-bottom: 8px; }
+
+    /* ── États ── */
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #fff; border-top-color: transparent;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    .spinner-dark { border-color: #1a73e8; border-top-color: transparent; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-bar { padding: 10px 14px; border-radius: 6px; font-size: 13px; display: none; }
+    .status-bar.info    { background: #e8f0fe; color: #1a73e8; display: block; }
+    .status-bar.success { background: #e6f4ea; color: #137333; display: block; }
+    .status-bar.error   { background: #fce8e6; color: #c5221f; display: block; }
+    .status-bar.warning { background: #fef7e0; color: #9a6700; display: block; }
+
+    #no-absents { text-align: center; color: #5f6368; padding: 20px 0; }
+    .row-btns { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  
+
+    .header-title { font-size: 16px; font-weight: 500; }
+    .user-email { font-size: 12px; font-weight: 400; opacity: 0.85; text-align: right; overflow-wrap: anywhere; }
+
+    /* ── Navigateur Drive mobile ── */
+    .folder-modal {
+      position: fixed; inset: 0; z-index: 1000; display: none;
+      background: rgba(32,33,36,.42);
+    }
+    .folder-modal.open { display: flex; align-items: flex-end; }
+    .folder-sheet {
+      width: 100%; height: 92dvh; max-height: 92dvh; background: white; border-radius: 16px 16px 0 0;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 -8px 28px rgba(60,64,67,.28);
+    }
+    .folder-sheet-header {
+      padding: 14px 16px; border-bottom: 1px solid #e0e0e0;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .folder-sheet-title { min-width: 0; }
+    .folder-sheet-title strong { display: block; font-size: 16px; color: #202124; }
+    .folder-current { font-size: 12px; color: #5f6368; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 72vw; }
+    .icon-btn {
+      width: 44px; height: 44px; border: 1px solid #dadce0; border-radius: 50%;
+      background: white; color: #3c4043; font-size: 22px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .folder-toolbar { padding: 12px 16px; border-bottom: 1px solid #f1f3f4; display: flex; gap: 8px; flex-wrap: wrap; }
+    .folder-sources {
+      display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px;
+      border-bottom: 1px solid #f1f3f4; -webkit-overflow-scrolling: touch;
+    }
+    .folder-source-btn {
+      min-height: 38px; border: 1px solid #dadce0; border-radius: 19px;
+      background: white; color: #3c4043; padding: 7px 12px; white-space: nowrap;
+      font-size: 12px; font-weight: 600;
+    }
+    .folder-source-btn.active { background: #e8f0fe; border-color: #1a73e8; color: #1a73e8; }
+    .folder-breadcrumbs {
+      display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px;
+      border-bottom: 1px solid #f1f3f4; -webkit-overflow-scrolling: touch;
+    }
+    .breadcrumb-btn {
+      min-height: 36px; border: 1px solid #dadce0; border-radius: 18px;
+      background: white; color: #1a73e8; padding: 6px 12px; white-space: nowrap;
+      font-size: 12px; font-weight: 500;
+    }
+    .folder-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .folder-row {
+      min-height: 56px; border-bottom: 1px solid #f1f3f4;
+      display: grid; grid-template-columns: 48px 1fr 48px; align-items: center;
+      background: white;
+    }
+    .folder-row:active { background: #f8fafd; }
+    .folder-checkbox-wrap {
+      width: 48px; height: 56px; display: flex; align-items: center; justify-content: center;
+    }
+    .folder-checkbox { width: 24px; height: 24px; }
+    .folder-name-btn {
+      min-width: 0; height: 56px; border: none; background: transparent;
+      display: flex; align-items: center; gap: 10px; text-align: left;
+      color: #202124; font: inherit; font-weight: 500; overflow: hidden;
+    }
+    .folder-name-btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .folder-open-btn {
+      width: 48px; height: 56px; border: none; background: transparent;
+      color: #5f6368; font-size: 24px; cursor: pointer;
+    }
+    .file-select-btn {
+      min-height: 56px; width: 100%; border: none; background: white;
+      display: flex; align-items: center; gap: 10px; padding: 0 16px;
+      text-align: left; color: #202124; font: inherit; font-weight: 500;
+      border-bottom: 1px solid #f1f3f4;
+    }
+    .file-select-btn:active { background: #f8fafd; }
+    .file-select-btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .folder-empty, .folder-loading { padding: 28px 16px; color: #5f6368; text-align: center; }
+    .folder-sheet-footer {
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid #e0e0e0; background: white;
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    @media (min-width: 720px) {
+      .folder-modal.open { align-items: center; justify-content: center; }
+      .folder-sheet { max-width: 720px; height: 78vh; border-radius: 8px; }
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 12px 14px; align-items: flex-start; flex-direction: column; gap: 4px; }
+      .user-email { text-align: left; }
+      main { padding: 12px; gap: 12px; }
+      footer { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+      footer .btn, .folder-sheet-footer .btn { width: 100%; }
+      .folder-sheet-footer { flex-direction: column-reverse; }
+      .section { padding: 14px; border-radius: 6px; }
+      .btn { width: 100%; }
+      .row-btns { width: 100%; }
+      .date-nav { gap: 8px; justify-content: space-between; }
+      .date-label { flex: 1; min-width: 0; }
+      .date-counter { display: none; }
+      .file-card-header, .card-header { flex-direction: column; align-items: stretch; }
+      .send-label { min-height: 44px; margin-left: 0; font-size: 13px; }
+      .template-btn { min-height: 40px; flex: 1 1 auto; }
+      .custom-editor textarea, .custom-editor input, #sender-name { min-height: 44px; font-size: 16px !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <span class="header-title">📋 Ô Talents — Gestion des absences</span>
+    <span id="user-email" class="user-email">Chargement…</span>
+  </header>
+
+  <main>
+    <div id="status-bar" class="status-bar"></div>
+
+    <!-- SECTION 0 : Fichier informations élèves -->
+    <div class="section">
+      <div class="section-title">0 — Fichier d'informations élèves</div>
+      <p class="section-desc">
+        Sélectionne le fichier Drive contenant les emails élèves et parents.
+      </p>
+      <div id="info-file-chip" class="folder-chips">
+        <span class="no-folder-hint">Aucun fichier sélectionné</span>
+      </div>
+      <button class="btn btn-secondary" onclick="openInfoFilePicker()">📄 Choisir le fichier d'informations</button>
+    </div>
+
+    <!-- SECTION 1 : Dossiers -->
+    <div class="section">
+      <div class="section-title">1 — Dossiers d'absence</div>
+      <p class="section-desc">
+        Sélectionne au moins un dossier Drive contenant les feuilles d'absences.
+      </p>
+      <div id="folder-chips" class="folder-chips">
+        <span class="no-folder-hint" id="no-folder-hint">Aucun dossier sélectionné</span>
+      </div>
+      <button class="btn btn-secondary" onclick="openFolderPicker()">📁 Ajouter un dossier Drive</button>
+    </div>
+
+    <!-- SECTION 2 : Date de séance + vérification fichiers -->
+    <div class="section">
+      <div class="section-title">2 — Date de la séance</div>
+      <p class="section-desc">
+        Charge les dates disponibles, navigue jusqu'à la séance souhaitée,
+        puis vérifie la correspondance dans chaque fichier.
+      </p>
+
+      <!-- Bouton chargement des dates -->
+      <button id="btn-load-dates" class="btn btn-secondary" onclick="loadDates()">
+        📅 Charger les dates
+      </button>
+
+      <!-- Navigateur (masqué jusqu'au chargement) -->
+      <div id="date-controls" style="display:none">
+        <div class="date-controls">
+          <div class="date-nav">
+            <button class="date-nav-btn" id="btn-prev-date" onclick="navigateDate(-1)" disabled>‹</button>
+            <span class="date-label" id="date-label">—</span>
+            <button class="date-nav-btn" id="btn-next-date" onclick="navigateDate(+1)" disabled>›</button>
+            <span class="date-counter" id="date-counter"></span>
+          </div>
+          <!-- Bouton vérification -->
+          <div class="row-btns">
+            <button id="btn-verify" class="btn btn-secondary" onclick="verifyDateAcrossFiles()">
+              🔎 Vérifier la correspondance dans les fichiers
+            </button>
+          </div>
+        </div>
+
+        <!-- Résultats de la vérification par fichier (masqués jusqu'à vérification) -->
+        <div id="file-check-container" style="display:none">
+          <div style="margin-top:14px; font-size:12px; font-weight:600; color:#5f6368; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px;">
+            Résultats par fichier
+          </div>
+          <div id="file-check-list" class="file-check-list"></div>
+        </div>
+      </div>
+
+      <div id="date-empty-msg" style="display:none; font-size:13px; color:#9a6700; margin-top:12px; font-style:italic;">
+        ⚠️ Aucune date trouvée dans les feuilles du dossier sélectionné.
+      </div>
+    </div>
+
+    <!-- SECTION 3 : Émetteur + Template personnalisé -->
+    <div class="section">
+      <div class="section-title">3 — Paramètres des mails</div>
+
+      <!-- Nom de l'émetteur -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:13px; font-weight:500; color:#3c4043; display:block; margin-bottom:6px;">
+          ✍️ Nom de l'émetteur
+        </label>
+        <input id="sender-name" type="text"
+              style="width:100%; border:1px solid #dadce0; border-radius:4px; padding:8px; font-size:13px; font-family:inherit;"
+              placeholder="Ex : LEFEVRE Kylian"
+              value="LEFEVRE Kylian"
+              oninput="refreshAllPreviews()">
+        <p class="hint" style="margin-top:4px">
+          Remplace <code>{{EMETTEUR}}</code> dans tous les templates. Apparaît dans la signature des mails.
+        </p>
+      </div>
+
+      <div style="border-top:1px solid #f1f3f4; padding-top:14px; margin-bottom:16px;">
+        <div style="font-size:12px; font-weight:600; color:#5f6368; text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px;">
+          Emails de contact
+        </div>
+        <label style="font-size:13px; font-weight:500; color:#3c4043; display:block; margin-bottom:6px;">
+          Adresse pour les justificatifs d'absence
+        </label>
+        <input id="justification-email" type="email"
+              style="width:100%; border:1px solid #dadce0; border-radius:4px; padding:8px; font-size:13px; font-family:inherit; margin-bottom:8px;"
+              placeholder="Ex : edc@insa-toulouse.fr"
+              oninput="refreshAllPreviews()">
+        <label style="font-size:13px; font-weight:500; color:#3c4043; display:block; margin-bottom:6px;">
+          Email des coordinateurs
+        </label>
+        <input id="coordinator-email" type="email"
+              style="width:100%; border:1px solid #dadce0; border-radius:4px; padding:8px; font-size:13px; font-family:inherit;"
+              placeholder="Ex : responsable@gmail.com"
+              oninput="refreshAllPreviews()">
+      </div>
+
+      <div style="border-top:1px solid #f1f3f4; padding-top:14px;">
+        <div style="font-size:12px; font-weight:600; color:#5f6368; text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px;">
+          Template personnalisé (optionnel)
+        </div>
+        <div class="custom-editor">
+          <input id="custom-subject" type="text" placeholder="Objet du mail personnalisé">
+          <p class="hint">Placeholders : <code>{{NOM}}</code>, <code>{{PRENOM}}</code>, <code>{{EMETTEUR}}</code>, <code>{{JUSTIFICATIF_EMAIL}}</code>, <code>{{COORDINATEUR_EMAIL}}</code> et <code>{{e}}</code> (ajoute un "e" si l'élève est une fille)</p>
+          <textarea id="custom-body" rows="5"
+            placeholder="Corps du mail personnalisé…&#10;Ex : Bonjour Madame, Monsieur, {{PRENOM}} {{NOM}} a été absent{{e}} …"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 : Extraction -->
+    <div class="section">
+      <div class="section-title">4 — Extraction</div>
+      <p class="section-desc">
+        Lance l'extraction pour les fichiers inclus et la date vérifiée.
+      </p>
+      <button id="btn-extract" class="btn btn-primary" onclick="extractAbsents()" disabled>
+        🔍 Lancer l'extraction
+      </button>
+      <div id="students-container" style="margin-top:14px">
+        <p style="color:#5f6368; font-size:13px;">
+          Vérifiez d'abord la correspondance, puis lancez l'extraction.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <button id="btn-drafts" class="btn btn-primary" onclick="createDrafts()" disabled>
+      📧 Créer les brouillons Gmail
+    </button>
+  </footer>
+
+  <div id="folder-modal" class="folder-modal" onclick="onFolderModalBackdrop(event)" aria-hidden="true">
+    <div class="folder-sheet" role="dialog" aria-modal="true" aria-labelledby="folder-modal-title">
+      <div class="folder-sheet-header">
+        <div class="folder-sheet-title">
+          <strong id="folder-modal-title">Choisir des dossiers Drive</strong>
+          <div id="folder-current" class="folder-current">Mon Drive</div>
+        </div>
+        <button class="icon-btn" type="button" onclick="closeFolderBrowser()" aria-label="Fermer">×</button>
+      </div>
+      <div id="folder-sources" class="folder-sources" role="tablist" aria-label="Emplacements Drive">
+        <button id="folder-source-my-drive" class="folder-source-btn active" type="button" onclick="switchFolderSource('my-drive')">Mon Drive</button>
+        <button id="folder-source-shared" class="folder-source-btn" type="button" onclick="switchFolderSource('shared')">Partagés avec moi</button>
+        <button id="folder-source-recent" class="folder-source-btn" type="button" onclick="switchFolderSource('recent')">Récents</button>
+        <button id="folder-source-starred" class="folder-source-btn" type="button" onclick="switchFolderSource('starred')">Suivis</button>
+      </div>
+      <div class="folder-toolbar">
+        <button id="btn-folder-up" class="btn btn-secondary" type="button" onclick="goToParentFolder()" disabled>← Retour</button>
+        <button id="btn-select-current" class="btn btn-secondary" type="button" onclick="selectCurrentFolder()">Sélectionner ce dossier</button>
+      </div>
+      <div id="folder-breadcrumbs" class="folder-breadcrumbs"></div>
+      <div id="folder-list" class="folder-list">
+        <div class="folder-loading"><span class="spinner spinner-dark"></span>Chargement des dossiers…</div>
+      </div>
+      <div class="folder-sheet-footer">
+        <button class="btn btn-secondary" type="button" onclick="closeFolderBrowser()">Annuler</button>
+        <button id="btn-confirm-folders" class="btn btn-primary" type="button" onclick="confirmFolderSelection()">Confirmer la sélection</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="info-file-modal" class="folder-modal" onclick="onInfoFileModalBackdrop(event)" aria-hidden="true">
+    <div class="folder-sheet" role="dialog" aria-modal="true" aria-labelledby="info-file-modal-title">
+      <div class="folder-sheet-header">
+        <div class="folder-sheet-title">
+          <strong id="info-file-modal-title">Choisir le fichier d'informations</strong>
+          <div id="info-file-current" class="folder-current">Mon Drive</div>
+        </div>
+        <button class="icon-btn" type="button" onclick="closeInfoFileBrowser()" aria-label="Fermer">×</button>
+      </div>
+      <div class="folder-sources" role="tablist" aria-label="Emplacements Drive">
+        <button id="info-source-my-drive" class="folder-source-btn active" type="button" onclick="switchInfoFileSource('my-drive')">Mon Drive</button>
+        <button id="info-source-shared" class="folder-source-btn" type="button" onclick="switchInfoFileSource('shared')">Partagés avec moi</button>
+        <button id="info-source-recent" class="folder-source-btn" type="button" onclick="switchInfoFileSource('recent')">Récents</button>
+        <button id="info-source-starred" class="folder-source-btn" type="button" onclick="switchInfoFileSource('starred')">Suivis</button>
+      </div>
+      <div class="folder-toolbar">
+        <button id="btn-info-up" class="btn btn-secondary" type="button" onclick="goToParentInfoFolder()" disabled>← Retour</button>
+      </div>
+      <div id="info-file-breadcrumbs" class="folder-breadcrumbs"></div>
+      <div id="info-file-list" class="folder-list">
+        <div class="folder-loading"><span class="spinner spinner-dark"></span>Chargement des fichiers…</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ─────────────────────────────────────────────────────────
+  // État global
+  // ─────────────────────────────────────────────────────────
+  let absentsData     = [];
+  let defaultTpl      = {};
+  let studentChoice   = {};    // { "NOM|Prénom": { tpl, send } }
+  let selectedFolders = [];    // [{ id, name }]
+  let selectedInfoFile = null; // { id, name }
+  let infoFileBrowserState = { source: "my-drive", current: null, parent: null, breadcrumbs: [], folders: [], files: [] };
+  let activeInfoFileSource = "my-drive";
+  let folderBrowserState = { source: "my-drive", current: null, parent: null, breadcrumbs: [], folders: [] };
+  let folderBrowserSelected = new Map();
+  let activeFolderSource = "my-drive";
+  let availableDates  = [];    // [{ col, label }]
+  let selectedDateIdx = 0;
+  let fileCheckResults = [];   // [{ fileId, fileName, status, resolvedCol, resolvedLabel, reason, included }]
+
+  // Affiche l'adresse mail dès le chargement
+  google.script.run
+    .withSuccessHandler(email => {
+      const el = document.getElementById("user-email");
+      el.textContent = email ? `✉️ ${email}` : "";
+    })
+    .withFailureHandler(() => {
+      document.getElementById("user-email").textContent = "";
+    })
+    .getUserEmail();
+
+  // ─────────────────────────────────────────────────────────
+  // NAVIGATEUR DU FICHIER D'INFORMATIONS ÉLÈVES
+  // ─────────────────────────────────────────────────────────
+  function openInfoFilePicker() {
+    activeInfoFileSource = "my-drive";
+    document.getElementById("info-file-modal").classList.add("open");
+    document.getElementById("info-file-modal").setAttribute("aria-hidden", "false");
+    loadInfoFileBrowser("", activeInfoFileSource);
+  }
+
+  function closeInfoFileBrowser() {
+    document.getElementById("info-file-modal").classList.remove("open");
+    document.getElementById("info-file-modal").setAttribute("aria-hidden", "true");
+  }
+
+  function onInfoFileModalBackdrop(event) {
+    if (event.target.id === "info-file-modal") closeInfoFileBrowser();
+  }
+
+  function loadInfoFileBrowser(parentId, source) {
+    activeInfoFileSource = source || activeInfoFileSource || "my-drive";
+    renderInfoFileSourceTabs();
+    const list = document.getElementById("info-file-list");
+    list.innerHTML = '<div class="folder-loading"><span class="spinner spinner-dark"></span>Chargement des fichiers…</div>';
+
+    google.script.run
+      .withSuccessHandler(onInfoFileBrowserLoaded)
+      .withFailureHandler(err => {
+        list.innerHTML = `<div class="folder-empty">Erreur de lecture Drive : ${escHtml(err.message || err)}</div>`;
+      })
+      .listInfoFiles(parentId || "", activeInfoFileSource);
+  }
+
+  function switchInfoFileSource(source) {
+    activeInfoFileSource = source;
+    loadInfoFileBrowser("", source);
+  }
+
+  function renderInfoFileSourceTabs() {
+    ["my-drive", "shared", "recent", "starred"].forEach(source => {
+      const btn = document.getElementById(`info-source-${source}`);
+      if (btn) btn.classList.toggle("active", source === activeInfoFileSource);
+    });
+  }
+
+  function onInfoFileBrowserLoaded(payload) {
+    infoFileBrowserState = payload;
+    activeInfoFileSource = payload.source || activeInfoFileSource;
+    renderInfoFileSourceTabs();
+    renderInfoFileBrowser();
+  }
+
+  function renderInfoFileBrowser() {
+    const { current, parent, breadcrumbs, folders, files } = infoFileBrowserState;
+    document.getElementById("info-file-current").textContent = current ? current.name : "Mon Drive";
+    document.getElementById("btn-info-up").disabled = !parent;
+    document.getElementById("info-file-breadcrumbs").innerHTML = breadcrumbs.map(c => `
+      <button class="breadcrumb-btn" type="button" onclick="loadInfoFileBrowser('${escAttr(c.id)}','${escAttr(c.source || activeInfoFileSource)}')">${escHtml(c.name)}</button>
+    `).join("");
+
+    const rows = [];
+    (folders || []).forEach(folder => {
+      rows.push(`
+        <div class="folder-row">
+          <span class="folder-checkbox-wrap">📁</span>
+          <button class="folder-name-btn" type="button" onclick="loadInfoFileBrowser('${escAttr(folder.id)}',activeInfoFileSource)">
+            <span>${escHtml(folder.name)}</span>
+          </button>
+          <button class="folder-open-btn" type="button" aria-label="Ouvrir" onclick="loadInfoFileBrowser('${escAttr(folder.id)}',activeInfoFileSource)">›</button>
+        </div>`);
+    });
+    (files || []).forEach(file => {
+      rows.push(`
+        <button class="file-select-btn" type="button" onclick="selectInfoFileById('${escAttr(file.id)}')">
+          <span>📄</span><span>${escHtml(file.name)}</span>
+        </button>`);
+    });
+
+    document.getElementById("info-file-list").innerHTML = rows.length
+      ? rows.join("")
+      : '<div class="folder-empty">Aucun fichier Google Sheets ou Excel dans cet emplacement.</div>';
+  }
+
+  function goToParentInfoFolder() {
+    if (!infoFileBrowserState.parent) return;
+    loadInfoFileBrowser(infoFileBrowserState.parent.id, infoFileBrowserState.parent.source || activeInfoFileSource);
+  }
+
+  function selectInfoFileById(id) {
+    const file = (infoFileBrowserState.files || []).find(item => item.id === id);
+    if (!file) return;
+    selectedInfoFile = { id: file.id, name: file.name };
+    renderInfoFileChip();
+    resetVerification();
+    closeInfoFileBrowser();
+    setStatus("info", `📄 Fichier d'informations sélectionné : "${file.name}"`);
+  }
+
+  function renderInfoFileChip() {
+    const container = document.getElementById("info-file-chip");
+    if (!selectedInfoFile) {
+      container.innerHTML = '<span class="no-folder-hint">Aucun fichier sélectionné</span>';
+      return;
+    }
+    container.innerHTML = `
+      <span class="chip">📄 <span>${escHtml(selectedInfoFile.name)}</span>
+        <button class="chip-remove" onclick="removeInfoFile()" title="Retirer" aria-label="Retirer le fichier">×</button>
+      </span>`;
+  }
+
+  function removeInfoFile() {
+    selectedInfoFile = null;
+    renderInfoFileChip();
+    resetVerification();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // NAVIGATEUR DE DOSSIERS DRIVE
+  // ─────────────────────────────────────────────────────────
+  function openFolderPicker() {
+    folderBrowserSelected = new Map(selectedFolders.map(f => [f.id, f]));
+    activeFolderSource = "my-drive";
+    document.getElementById("folder-modal").classList.add("open");
+    document.getElementById("folder-modal").setAttribute("aria-hidden", "false");
+    loadFolderBrowser("", activeFolderSource);
+  }
+
+  function closeFolderBrowser() {
+    document.getElementById("folder-modal").classList.remove("open");
+    document.getElementById("folder-modal").setAttribute("aria-hidden", "true");
+  }
+
+  function onFolderModalBackdrop(event) {
+    if (event.target.id === "folder-modal") closeFolderBrowser();
+  }
+
+  function loadFolderBrowser(parentId, source) {
+    activeFolderSource = source || activeFolderSource || "my-drive";
+    renderFolderSourceTabs();
+    const list = document.getElementById("folder-list");
+    list.innerHTML = '<div class="folder-loading"><span class="spinner spinner-dark"></span>Chargement des dossiers…</div>';
+
+    google.script.run
+      .withSuccessHandler(onFolderBrowserLoaded)
+      .withFailureHandler(err => {
+        list.innerHTML = `<div class="folder-empty">Erreur de lecture Drive : ${escHtml(err.message || err)}</div>`;
+      })
+      .listFolders(parentId || "", activeFolderSource);
+  }
+
+  function switchFolderSource(source) {
+    activeFolderSource = source;
+    loadFolderBrowser("", source);
+  }
+
+  function renderFolderSourceTabs() {
+    ["my-drive", "shared", "recent", "starred"].forEach(source => {
+      const btn = document.getElementById(`folder-source-${source}`);
+      if (btn) btn.classList.toggle("active", source === activeFolderSource);
+    });
+  }
+
+  function onFolderBrowserLoaded(payload) {
+    folderBrowserState = payload;
+    activeFolderSource = payload.source || activeFolderSource;
+    renderFolderSourceTabs();
+    renderFolderBrowser();
+  }
+
+  function renderFolderBrowser() {
+    const { current, parent, breadcrumbs, folders } = folderBrowserState;
+    document.getElementById("folder-current").textContent = current ? current.name : "Mon Drive";
+    document.getElementById("btn-folder-up").disabled = !parent;
+    document.getElementById("btn-select-current").disabled = !current || !current.id;
+
+    document.getElementById("folder-breadcrumbs").innerHTML = breadcrumbs.map(c => `
+      <button class="breadcrumb-btn" type="button" onclick="loadFolderBrowser('${escAttr(c.id)}','${escAttr(c.source || activeFolderSource)}')">${escHtml(c.name)}</button>
+    `).join("");
+
+    const list = document.getElementById("folder-list");
+    if (!folders || folders.length === 0) {
+      list.innerHTML = '<div class="folder-empty">Aucun sous-dossier dans ce dossier.</div>';
+      updateFolderConfirmLabel();
+      return;
+    }
+
+    list.innerHTML = folders.map(folder => {
+      const checked = folderBrowserSelected.has(folder.id) ? "checked" : "";
+      const openTitle = folder.hasChildren ? "Ouvrir le dossier" : "Ouvrir le dossier vide";
+      return `
+        <div class="folder-row">
+          <label class="folder-checkbox-wrap" aria-label="Sélectionner ${escAttr(folder.name)}">
+            <input class="folder-checkbox" type="checkbox" ${checked}
+                   onchange="toggleFolderSelectionById('${escAttr(folder.id)}',this.checked)">
+          </label>
+          <button class="folder-name-btn" type="button" onclick="toggleFolderById('${escAttr(folder.id)}')">
+            <span>📁</span><span>${escHtml(folder.name)}</span>
+          </button>
+          <button class="folder-open-btn" type="button" title="${openTitle}" aria-label="${openTitle}" onclick="loadFolderBrowser('${escAttr(folder.id)}',activeFolderSource)">›</button>
+        </div>`;
+    }).join("");
+    updateFolderConfirmLabel();
+  }
+
+  function goToParentFolder() {
+    if (!folderBrowserState.parent) return;
+    loadFolderBrowser(folderBrowserState.parent.id, folderBrowserState.parent.source || activeFolderSource);
+  }
+
+  function selectCurrentFolder() {
+    const current = folderBrowserState.current;
+    if (!current || !current.id) return;
+    folderBrowserSelected.set(current.id, { id: current.id, name: current.name });
+    renderFolderBrowser();
+  }
+
+  function getBrowserFolderById(id) {
+    return (folderBrowserState.folders || []).find(folder => folder.id === id) || null;
+  }
+
+  function toggleFolderSelectionById(id, checked) {
+    const folder = getBrowserFolderById(id);
+    if (!folder) return;
+    if (checked) folderBrowserSelected.set(id, { id: folder.id, name: folder.name });
+    else folderBrowserSelected.delete(id);
+    updateFolderConfirmLabel();
+  }
+
+  function toggleFolderById(id) {
+    const folder = getBrowserFolderById(id);
+    if (!folder) return;
+    if (folderBrowserSelected.has(id)) folderBrowserSelected.delete(id);
+    else folderBrowserSelected.set(id, { id: folder.id, name: folder.name });
+    renderFolderBrowser();
+  }
+
+  function updateFolderConfirmLabel() {
+    const count = folderBrowserSelected.size;
+    document.getElementById("btn-confirm-folders").textContent = count > 0
+      ? `Confirmer (${count})`
+      : "Utiliser le dossier par défaut";
+  }
+
+  function confirmFolderSelection() {
+    const previousIds = selectedFolders.map(f => f.id).join("|");
+    selectedFolders = Array.from(folderBrowserSelected.values());
+    renderFolderChips();
+    closeFolderBrowser();
+
+    const nextIds = selectedFolders.map(f => f.id).join("|");
+    if (previousIds !== nextIds) resetDateState();
+
+    if (selectedFolders.length === 0) {
+      setStatus("info", "Aucun dossier sélectionné : le dossier par défaut sera utilisé.");
+    } else {
+      setStatus("info", selectedFolders.length === 1
+        ? `📁 Dossier sélectionné : "${selectedFolders[0].name}"`
+        : `📁 ${selectedFolders.length} dossiers sélectionnés.`);
+    }
+  }
+
+  function renderFolderChips() {
+    const container = document.getElementById("folder-chips");
+    if (selectedFolders.length === 0) {
+      container.innerHTML = `<span class="no-folder-hint" id="no-folder-hint">Aucun dossier sélectionné</span>`;
+      return;
+    }
+    container.innerHTML = selectedFolders.map((f, i) => `
+      <span class="chip">📁 <span>${escHtml(f.name)}</span>
+        <button class="chip-remove" onclick="removeFolder(${i})" title="Retirer" aria-label="Retirer ${escAttr(f.name)}">×</button>
+      </span>`).join("");
+  }
+
+  function removeFolder(index) {
+    selectedFolders.splice(index, 1);
+    renderFolderChips();
+    resetDateState();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // CHARGEMENT DES DATES
+  // ─────────────────────────────────────────────────────────
+  function loadDates() {
+    if (selectedFolders.length === 0) {
+      setStatus("error", "Sélectionnez au moins un dossier d'absences.");
+      return;
+    }
+    const btn = document.getElementById("btn-load-dates");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-dark"></span>Chargement…';
+    setStatus("info", "Lecture des dates de séance…");
+
+    google.script.run
+      .withSuccessHandler(onDatesLoaded)
+      .withFailureHandler(err => {
+        onError(err);
+        btn.disabled = false;
+        btn.innerHTML = "📅 Charger les dates";
+      })
+      .getAbsenceDates(selectedFolders.map(f => f.id));
+  }
+
+  function onDatesLoaded(dates) {
+    const btn = document.getElementById("btn-load-dates");
+    btn.disabled = false;
+    btn.innerHTML = "🔄 Recharger les dates";
+
+    availableDates  = dates;
+    selectedDateIdx = 0;
+
+    if (dates.length === 0) {
+      document.getElementById("date-controls").style.display = "none";
+      document.getElementById("date-empty-msg").style.display = "block";
+      setStatus("warning", "Aucune date trouvée dans les feuilles.");
+      return;
+    }
+
+    document.getElementById("date-empty-msg").style.display  = "none";
+    document.getElementById("date-controls").style.display   = "block";
+    renderDateNavigator();
+    resetVerification(); // affichage propre, vérification requise
+    setStatus("success", `${dates.length} date(s) de séance trouvée(s). Sélectionnez une date puis vérifiez la correspondance.`);
+  }
+
+  function renderDateNavigator() {
+    const current = availableDates[selectedDateIdx];
+    document.getElementById("date-label").textContent   = current ? current.label : "—";
+    document.getElementById("date-counter").textContent = `(${selectedDateIdx + 1} / ${availableDates.length})`;
+    document.getElementById("btn-prev-date").disabled   = (selectedDateIdx === 0);
+    document.getElementById("btn-next-date").disabled   = (selectedDateIdx === availableDates.length - 1);
+  }
+
+  function navigateDate(direction) {
+    const newIdx = selectedDateIdx + direction;
+    if (newIdx < 0 || newIdx >= availableDates.length) return;
+    selectedDateIdx = newIdx;
+    renderDateNavigator();
+    // Changer de date invalide la vérification précédente
+    resetVerification();
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // RÉINITIALISATIONS
+  // ─────────────────────────────────────────────────────────
+  function resetDateState() {
+    availableDates  = [];
+    selectedDateIdx = 0;
+    document.getElementById("date-controls").style.display  = "none";
+    document.getElementById("date-empty-msg").style.display = "none";
+    document.getElementById("btn-load-dates").innerHTML = "📅 Charger les dates";
+    document.getElementById("btn-load-dates").disabled  = false;
+    resetVerification();
+  }
+
+  function resetVerification() {
+    fileCheckResults = [];
+    document.getElementById("file-check-container").style.display = "none";
+    document.getElementById("file-check-list").innerHTML = "";
+    document.getElementById("btn-extract").disabled = true;
+    document.getElementById("students-container").innerHTML =
+      `<p style="color:#5f6368; font-size:13px;">Vérifiez d'abord la correspondance, puis lancez l'extraction.</p>`;
+    document.getElementById("btn-drafts").disabled = true;
+    absentsData = [];
+    studentChoice = {};
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // VÉRIFICATION DE CORRESPONDANCE
+  // ─────────────────────────────────────────────────────────
+  function verifyDateAcrossFiles() {
+    if (selectedFolders.length === 0) {
+      setStatus("error", "Sélectionnez au moins un dossier d'absences.");
+      return;
+    }
+    const btn = document.getElementById("btn-verify");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-dark"></span>Vérification…';
+    setStatus("info", "Vérification de la correspondance dans chaque fichier…");
+
+    const target = availableDates[selectedDateIdx];
+
+    google.script.run
+      .withSuccessHandler(onVerifyDone)
+      .withFailureHandler(err => {
+        onError(err);
+        btn.disabled = false;
+        btn.innerHTML = "🔎 Vérifier la correspondance dans les fichiers";
+      })
+      .checkDateAcrossFiles(selectedFolders.map(f => f.id), target.col, target.label);
+  }
+
+  function onVerifyDone(results) {
+    const btn = document.getElementById("btn-verify");
+    btn.disabled = false;
+    btn.innerHTML = "🔎 Vérifier la correspondance dans les fichiers";
+
+    // Ajoute le flag `included` selon le statut (manquant → exclu par défaut)
+    fileCheckResults = results.map(r => ({
+      ...r,
+      included: r.status !== "missing"
+    }));
+
+    renderFileCheckCards();
+
+    const ok      = results.filter(r => r.status === "ok").length;
+    const partial = results.filter(r => r.status === "partial").length;
+    const missing = results.filter(r => r.status === "missing").length;
+
+    const hasIncluded = fileCheckResults.some(r => r.included && r.resolvedCol !== null);
+    document.getElementById("btn-extract").disabled = !hasIncluded;
+
+    const parts = [];
+    if (ok)      parts.push(`${ok} exact`);
+    if (partial) parts.push(`${partial} partiel`);
+    if (missing) parts.push(`${missing} absent`);
+
+    setStatus(
+      missing > 0 || partial > 0 ? "warning" : "success",
+      `📋 Vérification terminée — ${parts.join(", ")}. Ajustez les inclusions si nécessaire.`
+    );
+  }
+
+  function renderFileCheckCards() {
+    const container = document.getElementById("file-check-container");
+    const list      = document.getElementById("file-check-list");
+
+    const BADGE_CONFIG = {
+      ok:      { cls: "badge-ok",      icon: "✅", label: "Correspondance exacte" },
+      partial: { cls: "badge-partial", icon: "⚠️", label: "Correspondance partielle" },
+      missing: { cls: "badge-missing", icon: "❌", label: "Séance absente" }
+    };
+
+    list.innerHTML = fileCheckResults.map((r, i) => {
+      const cfg = BADGE_CONFIG[r.status] || BADGE_CONFIG.missing;
+
+      // Ligne de détail selon le statut
+      let resolvedLine = "";
+      if (r.status === "partial") {
+        resolvedLine = `<div class="file-card-resolved">Valeur trouvée : "${escHtml(r.resolvedLabel)}" — colonne ${r.resolvedCol}</div>`;
+      } else if (r.status === "ok") {
+        resolvedLine = `<div class="file-card-resolved">Valeur : "${escHtml(r.resolvedLabel)}" — colonne ${r.resolvedCol}</div>`;
+      }
+
+      const isDisabled = r.resolvedCol === null && !r.included ? "" : "";
+
+      return `
+        <div class="file-card status-${r.status}" id="file-card-${i}">
+          <div class="file-card-header">
+            <span class="file-card-name">📄 ${escHtml(r.fileName)}</span>
+            <span class="file-status-badge ${cfg.cls}">${cfg.icon} ${cfg.label}</span>
+          </div>
+          <div class="file-card-reason">${escHtml(r.reason)}</div>
+          ${resolvedLine}
+          <label class="send-label" style="color:#3c4043"
+                 title="${r.resolvedCol === null && !r.included ? 'Aucune colonne résolue — inclusion possible mais colonne de référence sera utilisée' : ''}">
+            <input type="checkbox" id="file-chk-${i}"
+                   ${r.included ? "checked" : ""}
+                   onchange="updateFileInclusion(${i}, this.checked)">
+            Inclure dans l'extraction
+          </label>
+        </div>`;
+    }).join("");
+
+    container.style.display = "block";
+  }
+
+  function updateFileInclusion(idx, checked) {
+    fileCheckResults[idx].included = checked;
+
+    // Réactive ou désactive le bouton d'extraction selon s'il reste des fichiers inclus
+    const hasIncluded = fileCheckResults.some(r => r.included && r.resolvedCol !== null);
+    document.getElementById("btn-extract").disabled = !hasIncluded;
+
+    // Si on change l'inclusion après extraction, avertit que les résultats sont obsolètes
+    if (absentsData.length > 0) {
+      setStatus("warning", "⚠️ Les inclusions ont changé — relancez l'extraction pour mettre à jour les résultats.");
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // EXTRACTION
+  // ─────────────────────────────────────────────────────────
+  function extractAbsents() {
+    if (!selectedInfoFile) {
+      setStatus("error", "Sélectionnez le fichier d'informations élèves avant l'extraction.");
+      return;
+    }
+    const btn = document.getElementById("btn-extract");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Extraction en cours…';
+    setStatus("info", "Lecture des absences en cours…");
+
+    // Construit fileResolutions depuis les fichiers inclus avec une colonne résolue
+    const fileResolutions = fileCheckResults
+      .filter(r => r.included && r.resolvedCol !== null)
+      .map(r => ({ fileId: r.fileId, resolvedCol: r.resolvedCol }));
+
+    google.script.run
+      .withSuccessHandler(tpls => {
+        defaultTpl = tpls;
+        google.script.run
+          .withSuccessHandler(onExtractSuccess)
+          .withFailureHandler(onError)
+          .getAbsentsWithEmails(fileResolutions, selectedInfoFile.id);
+      })
+      .withFailureHandler(onError)
+      .getDefaultTemplates();
+  }
+
+  function onExtractSuccess(data) {
+    absentsData   = data;
+    studentChoice = {};
+
+    const btn = document.getElementById("btn-extract");
+    btn.disabled = false;
+    btn.innerHTML = "🔄 Relancer l'extraction";
+
+    renderStudents(data);
+
+    const hasActionable = data.some(s => s.hasParentEmail);
+    document.getElementById("btn-drafts").disabled = !hasActionable;
+
+    const dateLabel    = availableDates.length > 0 ? ` — séance du ${availableDates[selectedDateIdx].label}` : "";
+    const unknownCount = data.filter(s => s.statusType === "unknown" || s.statusType === "empty").length;
+    const msg = data.length > 0
+      ? `${data.length} élève(s) non-présent(s)${dateLabel}.`
+        + (unknownCount > 0 ? ` ⚠️ ${unknownCount} valeur(s) indéterminée(s) à vérifier.` : "")
+      : `Aucun absent détecté${dateLabel}.`;
+
+    setStatus(data.length > 0 ? (unknownCount > 0 ? "warning" : "success") : "info", msg);
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // RENDU CARTES ÉLÈVES
+  // ─────────────────────────────────────────────────────────
+  function renderStudents(data) {
+    const container = document.getElementById("students-container");
+
+    if (data.length === 0) {
+      container.innerHTML = '<p id="no-absents" style="text-align:center;color:#5f6368;padding:20px 0">✅ Aucun absent trouvé.</p>';
+      return;
+    }
+
+    container.innerHTML = data.map((s, idx) => {
+      const key         = `${s.name}|${s.surname}`;
+      const defaultSend = s.hasParentEmail && s.statusType === "absent";
+      studentChoice[key] = { tpl: "tpl1", send: defaultSend };
+
+      const emailLines = [
+        s.emails.p0 ? `Élève : ${escHtml(s.emails.p0)}` : "",
+        s.emails.p1 ? `Parent 1 : ${escHtml(s.emails.p1)}` : "",
+        s.emails.p2 ? `Parent 2 : ${escHtml(s.emails.p2)}` : ""
+      ].filter(Boolean).join(" · ") || "Aucun email trouvé";
+
+      let statusBadge = "";
+      if      (s.statusType === "absent")  statusBadge = `<span class="badge badge-absent">Absent·e</span>`;
+      else if (s.statusType === "unknown") statusBadge = `<span class="badge badge-unknown">⚠️ Valeur inconnue : &ldquo;${escHtml(s.rawStatus)}&rdquo;</span>`;
+      else if (s.statusType === "empty")   statusBadge = `<span class="badge badge-empty">⚠️ Case vide pour cette date</span>`;
+
+      const noMailBadge = !s.hasParentEmail
+        ? `<span class="badge badge-nomail" style="margin-left:6px">Aucun email parent</span>` : "";
+
+      // Badge genre (dans la card, sous les emails)
+      const GENDER_LABEL = { M: "♂ Masculin", F: "♀ Féminin", unknown: "⚬ Genre indéterminé" };
+      const GENDER_STYLE = {
+        M:       "background:#e8f0fe; color:#1a73e8;",
+        F:       "background:#fce8f3; color:#9c2780;",
+        unknown: "background:#f1f3f4; color:#80868b;"
+      };
+      const genderBadge = `<span class="badge" style="${GENDER_STYLE[s.gender] || GENDER_STYLE.unknown}">
+        ${GENDER_LABEL[s.gender] || GENDER_LABEL.unknown}
+      </span>`;
+
+      const tplAreaStyle = (defaultSend && s.hasParentEmail) ? "" : "display:none";
+      const previewText  = escHtml(fillTemplate(defaultTpl.template1.body, s.name, s.surname, s.gender));
+
+      return `
+        <div class="student-card" id="card-${idx}">
+          <div class="card-header">
+            <div class="student-name">${escHtml(s.name)} ${escHtml(s.surname)}</div>
+            <label class="send-label ${!s.hasParentEmail ? 'disabled' : ''}"
+                   title="${!s.hasParentEmail ? 'Aucun email parent disponible' : 'Inclure dans l\'envoi'}">
+              <input type="checkbox" id="chk-${idx}"
+                     ${defaultSend ? "checked" : ""}
+                     ${!s.hasParentEmail ? "disabled" : ""}
+                     onchange="updateSendChoice(${idx}, this.checked)">
+              Inclure dans l'envoi
+            </label>
+          </div>
+          <div class="student-emails">${emailLines}</div>
+          <div>${statusBadge}${noMailBadge}${genderBadge}</div>
+          <div id="tpl-area-${idx}" style="margin-top:10px;${tplAreaStyle}">
+            <div class="template-selector">
+              <button class="template-btn active" onclick="selectTemplate(${idx},'tpl1',this)">1re absence</button>
+              <button class="template-btn"        onclick="selectTemplate(${idx},'tpl2',this)">Absences répétées</button>
+              <button class="template-btn"        onclick="selectTemplate(${idx},'custom',this)">✏️ Personnalisé</button>
+            </div>
+            <div id="preview-${idx}" class="preview-box">${previewText}</div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  function updateSendChoice(idx, checked) {
+    const key = `${absentsData[idx].name}|${absentsData[idx].surname}`;
+    studentChoice[key].send = checked;
+    const area = document.getElementById(`tpl-area-${idx}`);
+    area.style.display = (checked && absentsData[idx].hasParentEmail) ? "block" : "none";
+  }
+
+  function selectTemplate(idx, choice, btn) {
+    const s   = absentsData[idx];
+    const key = `${s.name}|${s.surname}`;
+    studentChoice[key].tpl = choice;
+
+    document.getElementById(`card-${idx}`)
+      .querySelectorAll(".template-btn")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const preview = document.getElementById(`preview-${idx}`);
+    if      (choice === "tpl1") preview.textContent = fillTemplate(defaultTpl.template1.body, s.name, s.surname, s.gender);
+    else if (choice === "tpl2") preview.textContent = fillTemplate(defaultTpl.template2.body, s.name, s.surname, s.gender);
+    else {
+      const customBody = document.getElementById("custom-body").value;
+      preview.textContent = customBody
+        ? fillTemplate(customBody, s.name, s.surname, s.gender)
+        : "(Remplis le template personnalisé ci-dessus)";
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // CRÉATION DES BROUILLONS
+  // ─────────────────────────────────────────────────────────
+  function createDrafts() {
+    const btn           = document.getElementById("btn-drafts");
+    const customSubject = document.getElementById("custom-subject").value.trim();
+    const customBody    = document.getElementById("custom-body").value.trim();
+    const justificationEmail = document.getElementById("justification-email").value.trim();
+    const coordinatorEmail   = document.getElementById("coordinator-email").value.trim();
+    const draftsData    = [];
+    let   customError   = false;
+
+    if (!justificationEmail || !coordinatorEmail) {
+      setStatus("error", "Renseignez les deux emails de contact avant de créer les brouillons.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Création en cours…';
+
+    absentsData.forEach(s => {
+      if (!s.hasParentEmail) return;
+      const key    = `${s.name}|${s.surname}`;
+      const choice = studentChoice[key];
+      if (!choice.send) return;
+
+      let subject, body;
+      if      (choice.tpl === "tpl1") { subject = fillTemplate(defaultTpl.template1.subject, s.name, s.surname, s.gender); body = fillTemplate(defaultTpl.template1.body, s.name, s.surname, s.gender); }
+      else if (choice.tpl === "tpl2") { subject = fillTemplate(defaultTpl.template2.subject, s.name, s.surname, s.gender); body = fillTemplate(defaultTpl.template2.body, s.name, s.surname, s.gender); }
+      else {
+        if (!customSubject || !customBody) { customError = true; return; }
+        subject = fillTemplate(customSubject, s.name, s.surname, s.gender);
+        body    = fillTemplate(customBody,    s.name, s.surname, s.gender);
+      }
+      draftsData.push({ to: [s.emails.p1, s.emails.p2].filter(Boolean).join(", "), cc: s.emails.p0 || "", subject, body });
+    });
+
+    if (customError) {
+      setStatus("error", "⚠️ Le template personnalisé est incomplet (objet ou corps manquant).");
+      btn.disabled = false; btn.innerHTML = "📧 Créer les brouillons Gmail";
+      return;
+    }
+    if (draftsData.length === 0) {
+      setStatus("warning", "Aucun élève sélectionné pour l'envoi.");
+      btn.disabled = false; btn.innerHTML = "📧 Créer les brouillons Gmail";
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(results => {
+        btn.disabled = false; btn.innerHTML = "📧 Créer les brouillons Gmail";
+        const ok  = results.filter(r =>  r.success).length;
+        const err = results.filter(r => !r.success).length;
+        setStatus(err === 0 ? "success" : "error",
+          err === 0 ? `✅ ${ok} brouillon(s) créé(s) avec succès dans Gmail.`
+                    : `⚠️ ${ok} créé(s), ${err} échec(s). Vérifie le journal Apps Script.`);
+      })
+      .withFailureHandler(onError)
+      .createAllDrafts(draftsData);
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // UTILITAIRES
+  // ─────────────────────────────────────────────────────────
+  function fillTemplate(text, name, surname, gender) {
+  const sender = document.getElementById("sender-name").value.trim() || "LEFEVRE Kylian";
+  const justificationEmail = document.getElementById("justification-email")?.value.trim() || "{{JUSTIFICATIF_EMAIL}}";
+  const coordinatorEmail   = document.getElementById("coordinator-email")?.value.trim() || "{{COORDINATEUR_EMAIL}}";
+  return resolveGender(text, gender || "unknown")
+    .replace(/\{\{NOM\}\}/g,      name)
+    .replace(/\{\{PRENOM\}\}/g,   surname)
+    .replace(/\{\{EMETTEUR\}\}/g, sender)
+    .replace(/\{\{JUSTIFICATIF_EMAIL\}\}/g, justificationEmail)
+    .replace(/\{\{COORDINATEUR_EMAIL\}\}/g, coordinatorEmail);
+  }
+
+  // Résolution de {{e}} selon le genre :
+  //   M       → ""     → "inscrit"
+  //   F       → "e"    → "inscrite"
+  //   unknown → "(e)"  → "inscrit(e)"
+  function resolveGender(text, gender) {
+    const suffix = (gender === "M") ? "" : (gender === "F") ? "e" : "(e)";
+    return text.replace(/\{\{e\}\}/g, suffix);
+  }
+
+  // Appelée par oninput sur le champ sender-name
+  // Régénère tous les aperçus des cartes élèves affichées
+  // lorsque le nom de l'émetteur change
+  function refreshAllPreviews() {
+    absentsData.forEach((s, idx) => {
+      const preview = document.getElementById(`preview-${idx}`);
+      if (!preview) return;
+      const key    = `${s.name}|${s.surname}`;
+      const choice = studentChoice[key];
+      if (!choice) return;
+
+      if      (choice.tpl === "tpl1") preview.textContent = fillTemplate(defaultTpl.template1.body, s.name, s.surname, s.gender);
+      else if (choice.tpl === "tpl2") preview.textContent = fillTemplate(defaultTpl.template2.body, s.name, s.surname, s.gender);
+      else {
+        const customBody = document.getElementById("custom-body").value;
+        if (customBody) preview.textContent = fillTemplate(customBody, s.name, s.surname, s.gender);
+      }
+    });
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function escAttr(str) {
+    return escHtml(str).replace(/'/g,"&#39;");
+  }
+
+  function setStatus(type, message) {
+    const bar = document.getElementById("status-bar");
+    bar.className   = `status-bar ${type}`;
+    bar.textContent = message;
+  }
+
+  function onError(err) {
+    setStatus("error", `❌ Erreur : ${err.message || err}`);
+    document.getElementById("btn-extract").disabled  = false;
+    document.getElementById("btn-extract").innerHTML = "🔍 Lancer l'extraction";
+    document.getElementById("btn-drafts").disabled   = false;
+    document.getElementById("btn-drafts").innerHTML  = "📧 Créer les brouillons Gmail";
+    document.getElementById("btn-verify").disabled   = false;
+    document.getElementById("btn-verify").innerHTML  = "🔎 Vérifier la correspondance dans les fichiers";
+  }
+</script>
+</body>
+</html>
