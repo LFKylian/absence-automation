@@ -22,12 +22,14 @@ const SURNAME_COLUMN = 2; // Colonne B
 const PRESENT_VALUES = [
   "présent","présente","present","presente",
   "Présent","Présente","Present","Presente",
-  "PRÉSENT","PRÉSENTE","PRESENT","PRESENTE"
+  "PRÉSENT","PRÉSENTE","PRESENT","PRESENTE",
+  "Présent.e"
 ];
 const ABSENT_VALUES = [
   "abs", "Abs",
   "absent","absente","Absent","Absente",
-  "ABSENT","ABSENTE", "ABS"
+  "ABSENT","ABSENTE", "ABS",
+  "Absent.e"
 ];
 
 const FIRST_ABSENCE_SUBJECT  = "[Ô Talents] Absence de {{NOM}} {{PRENOM}}";
